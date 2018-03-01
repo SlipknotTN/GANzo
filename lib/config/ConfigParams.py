@@ -1,9 +1,6 @@
 import configparser
-import json
 
-from constants.Constants import Constants as const
-from .OptimizerParamsFactory import OptimizerParamsFactory
-from .LRPolicyParams import LRPolicyParams
+from lib.constants.Constants import Constants as const
 
 
 class ConfigParams(object):
