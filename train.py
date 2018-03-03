@@ -44,8 +44,11 @@ def main():
 
     # Set up the input
     originalImages, labels, numSamples = mnist_data_provider.provide_data("train", config.batchSize, args.datasetDir)
+    # Range is [-1, 1]
     images = tf.reshape(originalImages, shape=(config.batchSize, originalImages.shape[1] * originalImages.shape[2]))
     noise = tf.random_normal([config.batchSize, config.noiseSize])
+
+    # TODO: Debug input images
 
     # Build the generator and discriminator.
     gan_model = tfgan.gan_model(
@@ -57,38 +60,46 @@ def main():
     # Build the GAN loss.
     gan_loss = tfgan.gan_loss(
         gan_model,
-        generator_loss_fn=tfgan.losses.wasserstein_generator_loss,
-        discriminator_loss_fn=tfgan.losses.wasserstein_discriminator_loss)
+        generator_loss_fn=tfgan.losses.least_squares_generator_loss,
+        discriminator_loss_fn=tfgan.losses.least_squares_discriminator_loss)
+
+    # TODO: Add a log in console about training progress (right now we have to check the tensorboard)
 
     # Create the train ops, which calculate gradients and apply updates to weights.
     train_ops = tfgan.gan_train_ops(
         gan_model,
         gan_loss,
-        generator_optimizer=tf.train.AdamOptimizer(0.5),
-        discriminator_optimizer=tf.train.AdamOptimizer(0.5))
+        generator_optimizer=tf.train.AdamOptimizer(learning_rate=0.001, beta1=0.5),
+        discriminator_optimizer=tf.train.AdamOptimizer(learning_rate=0.001, beta1=0.5))
+
+    status_message = tf.string_join(
+        ['Starting train step: ',
+         tf.as_string(tf.train.get_or_create_global_step())],
+        name='status_message')
+
+    # TODO: Add saving of images to tensorboard to evaluate training results
+
+    # TODO: Add inception and frechet distance,
+    # see https://github.com/tensorflow/models/blob/master/research/gan/tutorial.ipynb
 
     # Run the train ops in the alternating training scheme.
     tfgan.gan_train(
         train_ops,
-        hooks=[tf.train.StopAtStepHook(num_steps=10000)],
+        hooks=[tf.train.StopAtStepHook(num_steps=20000),
+               tf.train.LoggingTensorHook([status_message], every_n_iter=10)],
         logdir=args.tensorboardDir)
 
-    # Save images
-    with tf.Session() as sess:
-        sess.run(tf.global_variables_initializer())
-        generatedData = sess.run(gan_model.generated_data)
-        generatedData = np.reshape(generatedData, newshape=originalImages.shape)
-        splittedImages = np.split(generatedData, indices_or_sections=generatedData.shape[0], axis=0)
-        if os.path.exists(os.path.dirname(args.outputImagePath)) is False:
-            os.makedirs(os.path.dirname(args.outputImagePath))
-        # Squeeze first dimension to have 3D numpy array with clip to -1 and 1 in case of strange predictions
-        for index, image in enumerate(splittedImages):
-            filePath = args.outputImagePath + "_" + str(index + 1) + ".jpg"
-            image = np.squeeze(image, axis=0)
-            image = np.squeeze(image, axis=-1)
-            imageRGB = gray2rgb(image)
-            imsave(filePath, np.clip(imageRGB, a_min=-1.0, a_max=1.0))
-            print("Saved sample in " + filePath)
+    # From tutorial (it is suitable for evaluating during training, try to add as hook + tensorboard)
+    # The output is still a Tensor and you need a session to evaluate
+    with tf.variable_scope('Generator', reuse=True):
+
+        generatedDataTensor = gan_model.generator_fn(
+            tf.random_normal([config.batchSize, config.noiseSize]))
+
+    # Single images with table of samples
+    generatedDataTensor = tf.reshape(generatedDataTensor, shape=originalImages.shape)
+    generated_data_to_visualize = tfgan.eval.image_reshaper(
+        generatedDataTensor[:config.batchSize, ...], num_cols=10)
 
 
 if __name__ == "__main__":
