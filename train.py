@@ -1,9 +1,5 @@
 import argparse
-import os
 
-from skimage.color import gray2rgb
-from skimage.io import imsave
-import numpy as np
 import tensorflow as tf
 tfgan = tf.contrib.gan
 
@@ -37,6 +33,8 @@ def main():
 
     config = ConfigParams(args.configFile)
 
+    # TODO: Create an abstraction level for predefined datasets and custom dataset
+
     if not tf.gfile.Exists(args.datasetDir):
         tf.gfile.MakeDirs(args.datasetDir)
 
@@ -44,6 +42,8 @@ def main():
 
     # Set up the input
     originalImages, labels, numSamples = mnist_data_provider.provide_data("train", config.batchSize, args.datasetDir)
+    numSteps = numSamples * config.epochs
+    print("NumSteps for " + str(config.epochs) + " epochs: " + str(numSteps))
     # Range is [-1, 1]
     images = tf.reshape(originalImages, shape=(config.batchSize, originalImages.shape[1] * originalImages.shape[2]))
     noise = tf.random_normal([config.batchSize, config.noiseSize])
@@ -60,8 +60,8 @@ def main():
     # Build the GAN loss.
     gan_loss = tfgan.gan_loss(
         gan_model,
-        generator_loss_fn=tfgan.losses.least_squares_generator_loss,
-        discriminator_loss_fn=tfgan.losses.least_squares_discriminator_loss)
+        generator_loss_fn=config.gloss,
+        discriminator_loss_fn=config.dloss)
 
     # TODO: Add a log in console about training progress (right now we have to check the tensorboard)
 
@@ -69,8 +69,8 @@ def main():
     train_ops = tfgan.gan_train_ops(
         gan_model,
         gan_loss,
-        generator_optimizer=tf.train.AdamOptimizer(learning_rate=0.001, beta1=0.5),
-        discriminator_optimizer=tf.train.AdamOptimizer(learning_rate=0.001, beta1=0.5))
+        generator_optimizer=config.optimizer,
+        discriminator_optimizer=config.optimizer)
 
     status_message = tf.string_join(
         ['Starting train step: ',
@@ -85,7 +85,7 @@ def main():
     # Run the train ops in the alternating training scheme.
     tfgan.gan_train(
         train_ops,
-        hooks=[tf.train.StopAtStepHook(num_steps=20000),
+        hooks=[tf.train.StopAtStepHook(num_steps=numSteps),
                tf.train.LoggingTensorHook([status_message], every_n_iter=10)],
         logdir=args.tensorboardDir)
 

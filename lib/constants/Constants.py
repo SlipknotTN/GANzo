@@ -64,6 +64,10 @@ class Constants(object):
         lrDecayStep = "lrDecayStep"
         lrDecayRate = "lrDecayRate"
 
+        loss = "loss"
+        gloss = "gloss"
+        dloss = "dloss"
+
         type = "type"
 
     class LRPolicy:
