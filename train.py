@@ -4,10 +4,9 @@ import tensorflow as tf
 tfgan = tf.contrib.gan
 
 from lib.config.ConfigParams import ConfigParams
-import lib.model.simpleMNIST as simpleMNIST
-import lib.data.mnist.data_provider as mnist_data_provider
+from lib.data.DataProvider import DataProvider
 
-from deps.tfmodels.research.slim.datasets import download_and_convert_mnist
+import lib.model.simpleMNIST as simpleMNIST
 
 
 def doParsing():
@@ -15,6 +14,7 @@ def doParsing():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         description='TF GAN API training scripts')
     parser.add_argument('--datasetDir', required=True, default=None, help='Dataset directory')
+    parser.add_argument('--datasetName', required=False, default="custom", help='Dataset name, e.g. mnist, custom, ...')
     parser.add_argument('--modelOutputDir', required=False, default="./export",
                         help='Output folder that will contains final trained model graph.pb')
     parser.add_argument('--outputImagePath', required=False, default="./export/image",
@@ -35,17 +35,9 @@ def main():
 
     # TODO: Create an abstraction level for predefined datasets and custom dataset
 
-    if not tf.gfile.Exists(args.datasetDir):
-        tf.gfile.MakeDirs(args.datasetDir)
-
-    download_and_convert_mnist.run(args.datasetDir)
-
-    # Set up the input
-    originalImages, labels, numSamples = mnist_data_provider.provide_data("train", config.batchSize, args.datasetDir)
+    images, numSamples = DataProvider.createDataProvider(args, config)
     numSteps = numSamples * config.epochs
     print("NumSteps for " + str(config.epochs) + " epochs: " + str(numSteps))
-    # Range is [-1, 1]
-    images = tf.reshape(originalImages, shape=(config.batchSize, originalImages.shape[1] * originalImages.shape[2]))
     noise = tf.random_normal([config.batchSize, config.noiseSize])
 
     # TODO: Debug input images
@@ -91,15 +83,15 @@ def main():
 
     # From tutorial (it is suitable for evaluating during training, try to add as hook + tensorboard)
     # The output is still a Tensor and you need a session to evaluate
-    with tf.variable_scope('Generator', reuse=True):
-
-        generatedDataTensor = gan_model.generator_fn(
-            tf.random_normal([config.batchSize, config.noiseSize]))
-
-    # Single images with table of samples
-    generatedDataTensor = tf.reshape(generatedDataTensor, shape=originalImages.shape)
-    generated_data_to_visualize = tfgan.eval.image_reshaper(
-        generatedDataTensor[:config.batchSize, ...], num_cols=10)
+    # with tf.variable_scope('Generator', reuse=True):
+    #
+    #     generatedDataTensor = gan_model.generator_fn(
+    #         tf.random_normal([config.batchSize, config.noiseSize]))
+    #
+    # # Single images with table of samples
+    # generatedDataTensor = tf.reshape(generatedDataTensor, shape=originalImages.shape)
+    # generated_data_to_visualize = tfgan.eval.image_reshaper(
+    #     generatedDataTensor[:config.batchSize, ...], num_cols=10)
 
 
 if __name__ == "__main__":
