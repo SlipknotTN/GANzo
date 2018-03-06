@@ -19,6 +19,7 @@ class ConfigParams(object):
         self.inputSize = config.getint(const.ConfigSection.model, "inputSize", fallback=224)
         self.inputChannels = config.getint(const.ConfigSection.model, "inputChannels", fallback=3)
         self.inputFormat = config.get(const.ConfigSection.model, "inputFormat", fallback="RGB")
+        self.preprocessType = config.get(const.ConfigSection.model, "preprocessType", fallback="inception")
 
         # HyperParameters
         self.epochs = config.getint(const.ConfigSection.hyperparameters, "epochs")
@@ -45,3 +46,9 @@ class ConfigParams(object):
         # We have to pass learning rate again to add further support to LR policies
         self.optimizer = TrainOptimizerFactory.createOptimizer(learningRate=self.optimizerParams.learning_rate,
                                                                optimizerParams=self.optimizerParams)
+
+
+        #Dataset creation params (image size = model size for simplicity)
+        self.datasetName = config.get(const.ConfigSection.datasetParameters, const.DatasetParams.datasetName)
+        self.imageEncoding = config.get(const.ConfigSection.datasetParameters, const.DatasetParams.imageEncoding,
+                                        fallback="jpeg")

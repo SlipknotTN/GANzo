@@ -8,6 +8,7 @@ class Constants(object):
 
     class DatasetParams:
 
+        datasetName = "datasetName"
         validationPercentage = "validationPercentage"
         imageEncoding = "imageEncoding"
 
