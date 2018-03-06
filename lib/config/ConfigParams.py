@@ -1,4 +1,5 @@
 import configparser
+import json
 
 from lib.constants.Constants import Constants as const
 from .OptimizerParamsFactory import OptimizerParamsFactory
@@ -20,6 +21,9 @@ class ConfigParams(object):
         self.inputChannels = config.getint(const.ConfigSection.model, "inputChannels", fallback=3)
         self.inputFormat = config.get(const.ConfigSection.model, "inputFormat", fallback="RGB")
         self.preprocessType = config.get(const.ConfigSection.model, "preprocessType", fallback="inception")
+        self.meanRGB = None
+        if self.preprocessType == "vgg":
+            self.meanRGB = json.loads(config.get(const.ConfigSection.model, "meanRGB", fallback="[0.0, 0.0, 0.0]"))
 
         # HyperParameters
         self.epochs = config.getint(const.ConfigSection.hyperparameters, "epochs")
@@ -49,6 +53,5 @@ class ConfigParams(object):
 
 
         #Dataset creation params (image size = model size for simplicity)
-        self.datasetName = config.get(const.ConfigSection.datasetParameters, const.DatasetParams.datasetName)
         self.imageEncoding = config.get(const.ConfigSection.datasetParameters, const.DatasetParams.imageEncoding,
                                         fallback="jpeg")

@@ -33,9 +33,8 @@ def main():
 
     config = ConfigParams(args.configFile)
 
-    # TODO: Create an abstraction level for predefined datasets and custom dataset
-
-    images, numSamples = DataProvider.createDataProvider(args, config)
+    # Prepare images provider, using input model type and dataset name (mnist, custom, ...)
+    images, labels, numSamples = DataProvider.createDataProvider(args, config)
     numSteps = numSamples * config.epochs
     print("NumSteps for " + str(config.epochs) + " epochs: " + str(numSteps))
     noise = tf.random_normal([config.batchSize, config.noiseSize])
