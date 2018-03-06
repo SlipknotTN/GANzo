@@ -5,8 +5,7 @@ tfgan = tf.contrib.gan
 
 from lib.config.ConfigParams import ConfigParams
 from lib.data.DataProvider import DataProvider
-
-import lib.model.simpleMNIST as simpleMNIST
+from lib.model.ModelFactory import ModelFactory
 
 
 def doParsing():
@@ -42,9 +41,11 @@ def main():
     # TODO: Debug input images
 
     # Build the generator and discriminator.
+    generator_fn, discriminator_fn = ModelFactory.create(config)
+
     gan_model = tfgan.gan_model(
-        generator_fn=simpleMNIST.generator,  # you define
-        discriminator_fn=simpleMNIST.discriminator,  # you define
+        generator_fn=generator_fn,  # you define
+        discriminator_fn=discriminator_fn,  # you define
         real_data=images,
         generator_inputs=noise)
 

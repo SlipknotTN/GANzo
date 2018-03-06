@@ -56,21 +56,31 @@ def main():
 
         generatedBatch = sess.run(outputTensor)
 
-        # Save all batch images (from batch x 784 -> [1 x 28 x 28 x 1])
-
         # TODO: Generalize to support already shaped images and RGB images
 
-        # MNIST reshape (generated image is 1D array)
-        generatedBatch = np.reshape(generatedBatch, newshape=([-1, 28, 28]))
+        # RGB
         splittedImages = np.split(generatedBatch, indices_or_sections=generatedBatch.shape[0], axis=0)
         if os.path.exists(os.path.dirname(args.outputImagePath)) is False:
             os.makedirs(os.path.dirname(args.outputImagePath))
         # Squeeze first dimension to have 3D numpy array
-        for index, image in enumerate(splittedImages):
+        for index, imageRGB in enumerate(splittedImages):
             filePath = args.outputImagePath + "_" + str(index+1) + ".jpg"
-            imageRGB = gray2rgb(image)
             imsave(filePath, np.clip(np.squeeze(imageRGB, axis=0), a_min=-1.0, a_max=1.0))
             print("Saved sample in " + filePath)
+
+        # Save all batch images (from batch x 784 -> [1 x 28 x 28 x 1])
+
+        # MNIST reshape (generated image is 1D array)
+        # generatedBatch = np.reshape(generatedBatch, newshape=([-1, 28, 28]))
+        # splittedImages = np.split(generatedBatch, indices_or_sections=generatedBatch.shape[0], axis=0)
+        # if os.path.exists(os.path.dirname(args.outputImagePath)) is False:
+        #     os.makedirs(os.path.dirname(args.outputImagePath))
+        # # Squeeze first dimension to have 3D numpy array
+        # for index, image in enumerate(splittedImages):
+        #     filePath = args.outputImagePath + "_" + str(index+1) + ".jpg"
+        #     imageRGB = gray2rgb(image)
+        #     imsave(filePath, np.clip(np.squeeze(imageRGB, axis=0), a_min=-1.0, a_max=1.0))
+        #     print("Saved sample in " + filePath)
 
 
 if __name__ == "__main__":

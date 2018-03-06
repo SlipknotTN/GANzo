@@ -37,7 +37,7 @@ class DataProvider(object):
 
             images, labels = dataProvider.readTFExamplesTraining()
 
-            return images, labels, datasetMetadata.numClasses
+            return images, labels, datasetMetadata.trainingSamplesNumber
 
         else:
             raise Exception("Dataset " + scriptArgs.datasetName + " not supported")
