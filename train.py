@@ -64,12 +64,11 @@ def main():
         generator_optimizer=config.optimizer,
         discriminator_optimizer=config.optimizer)
 
+    # FIXME: This status message doesn't work
     status_message = tf.string_join(
         ['Starting train step: ',
          tf.as_string(tf.train.get_or_create_global_step())],
         name='status_message')
-
-    # TODO: Add saving of images to tensorboard to evaluate training results
 
     # TODO: Add inception and frechet distance,
     # see https://github.com/tensorflow/models/blob/master/research/gan/tutorial.ipynb

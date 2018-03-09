@@ -48,6 +48,15 @@ def generator(z, out_channel_dim=3, alpha=0.2, keepProb=0.7, isTraining=True):
     # Output layer, 32x32xCH
     out = tf.tanh(logits)
 
+    # Probably need to split images
+    tf.summary.image(
+         "generated",
+         out,
+         max_outputs=1,
+         collections=None,
+         family=None
+    )
+
     return out
 
 
