@@ -48,8 +48,6 @@ def main():
             train_writer = tf.summary.FileWriter(args.tensorboardDir)
             train_writer.add_graph(sess.graph)
 
-        # Generator output Tanh batch_size x h x w x 3 (e.g. 32 x 128 x 128 x 3)
-
         # No placeholder present, random uniform batch_size x noise_size generate inputs for training
 
         outputTensor = sess.graph.get_tensor_by_name("Generator/Tanh" + ":0")
@@ -65,12 +63,15 @@ def main():
         # Squeeze first dimension to have 3D numpy array
         for index, imageRGB in enumerate(splittedImages):
             filePath = args.outputImagePath + "_" + str(index+1) + ".jpg"
-            imsave(filePath, np.clip(np.squeeze(imageRGB, axis=0), a_min=-1.0, a_max=1.0))
+            image = np.clip(np.squeeze(imageRGB, axis=0), a_min=-1.0, a_max=1.0)
+            # No normalization, only scaling to [0, 255]
+            image += 1.0
+            image *= 255.0/2.0
+            image = image.astype(np.uint8)
+            imsave(filePath, image)
             print("Saved sample in " + filePath)
 
-        # Save all batch images (from batch x 784 -> [1 x 28 x 28 x 1])
-
-        # MNIST reshape (generated image is 1D array)
+        # MNIST reshape (generated image is 1D array BW)
         # generatedBatch = np.reshape(generatedBatch, newshape=([-1, 28, 28]))
         # splittedImages = np.split(generatedBatch, indices_or_sections=generatedBatch.shape[0], axis=0)
         # if os.path.exists(os.path.dirname(args.outputImagePath)) is False:
