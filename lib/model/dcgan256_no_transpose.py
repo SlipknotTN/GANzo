@@ -107,12 +107,16 @@ def discriminator(x, unusedConditioning, alpha=0.2, keepProb=0.7, isTraining=Tru
     x1 = tf.maximum(alpha * x1, x1)
     x1 = tf.nn.dropout(x1, keep_prob=keepProb)
 
+    # Alternative 2: 3 layers
+    x2 = tf.reshape(x1, shape=(-1, 64, 64, 128))
+    logits = tf.layers.dense(inputs=x2, units=1)
+
     # 3rd block -> 32x32x256
-    x2 = tf.layers.conv2d(x1, filters=256, kernel_size=(3, 3), strides=2, activation=None,
-                          padding='same', kernel_initializer=tf.contrib.layers.xavier_initializer())
-    x2 = tf.layers.batch_normalization(x2, training=isTraining)
-    x2 = tf.maximum(alpha * x2, x2)
-    x2 = tf.nn.dropout(x2, keep_prob=keepProb)
+    # x2 = tf.layers.conv2d(x1, filters=256, kernel_size=(3, 3), strides=2, activation=None,
+    #                       padding='same', kernel_initializer=tf.contrib.layers.xavier_initializer())
+    # x2 = tf.layers.batch_normalization(x2, training=isTraining)
+    # x2 = tf.maximum(alpha * x2, x2)
+    # x2 = tf.nn.dropout(x2, keep_prob=keepProb)
 
     # 4th block -> 16x16x512
     # x3 = tf.layers.conv2d(x2, filters=512, kernel_size=(3, 3), strides=2, activation=None,
@@ -125,11 +129,11 @@ def discriminator(x, unusedConditioning, alpha=0.2, keepProb=0.7, isTraining=Tru
     #x4 = tf.reshape(x3, shape=(-1, 16 * 16 * 512))
     #logits = tf.layers.dense(inputs=x4, units=1)
 
-    # Alternative end at 4th block - Reshape for final dense layer -> units = 1 for sigmoid
+    # Alternative end #1 at 4th block - Reshape for final dense layer -> units = 1 for sigmoid
     # Better behaviour of this architecture,
     # with 5 layers the discriminator is too "smart" w.r.t. the generator.
-    x3 = tf.reshape(x2, shape=(-1, 32, 32, 256))
-    logits = tf.layers.dense(inputs=x3, units=1)
+    # x3 = tf.reshape(x2, shape=(-1, 32, 32, 256))
+    # logits = tf.layers.dense(inputs=x3, units=1)
 
     out = tf.sigmoid(logits)
 
