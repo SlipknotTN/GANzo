@@ -1,6 +1,7 @@
 import lib.model.simpleMNIST as simpleMNIST
 import lib.model.dcgan32 as dcgan32
 import lib.model.dcgan64 as dcgan64
+import lib.model.dcgan64_cond as dcgan64_cond
 import lib.model.dcgan128 as dcgan128
 import lib.model.dcgan128_no_transpose as dcgan128_no_transpose
 import lib.model.dcgan256 as dcgan256
@@ -23,6 +24,8 @@ class ModelFactory(object):
             return dcgan32.generator, dcgan32.discriminator
         elif config.architecture.lower() == "dcgan_64":
             return dcgan64.generator, dcgan64.discriminator
+        elif config.architecture.lower() == "dcgan_64_cond":
+            return dcgan64_cond.generator, dcgan64_cond.discriminator
         elif config.architecture.lower() == "dcgan_128":
             return dcgan128.generator, dcgan128.discriminator
         elif config.architecture.lower() == "dcgan_128_no_transpose":
